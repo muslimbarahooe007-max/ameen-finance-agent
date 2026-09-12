@@ -72,7 +72,7 @@ body {
         overflow: hidden; margin: 22px 0 4px; }
 .band > div { background: var(--ink); padding: 13px 16px; box-shadow: var(--shadow); }
 .band i { font-style: normal; display: block; color: var(--faint); font-size: 10.5px;
-          letter-spacing: 1px; text-transform: uppercase; }
+          letter-spacing: 1px; text-transform: uppercase; white-space: nowrap; }
 .band b { display: block; font-size: 21px; font-weight: 630; letter-spacing: -0.5px; margin-top: 5px; }
 .band b small { font-size: 12.5px; color: var(--dim); font-weight: 500; margin-left: 5px; }
 .band .risk b { color: var(--over); }
@@ -180,3 +180,20 @@ a:hover { text-decoration: underline; }
   .line { grid-template-columns: 1fr; gap: 15px; }
   .act, .stop-note, .done-note { justify-content: flex-start; text-align: left; max-width: none; }
 }
+
+/* agent activity ----------------------------------------------------- */
+.activity { margin: 5px 0 0; color: var(--dim); font-size: 12.5px; max-width: 34ch; }
+.activity b { color: var(--text); font-weight: 620; }
+
+.band .won b { color: var(--agreed); }
+
+/* vendor intelligence ------------------------------------------------ */
+.intel { margin-top: 16px; padding-top: 15px; border-top: 1px dashed var(--rule); }
+.intel h3 { margin: 0 0 11px; font-size: 12px; font-weight: 600; color: var(--dim);
+            letter-spacing: .3px; }
+.intel-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 14px; }
+.intel-grid div { font-size: 13.5px; font-weight: 560; }
+.intel-grid div.bad { color: var(--over); }
+.intel-grid i { font-style: normal; display: block; color: var(--faint); font-size: 10.5px;
+                letter-spacing: .8px; text-transform: uppercase; margin-bottom: 4px; font-weight: 400; }
+.intel-note { margin: 12px 0 0; font-size: 12.5px; color: var(--over); line-height: 1.5; max-width: 76ch; }

@@ -2,6 +2,7 @@
 
 import { useCallback, useEffect, useState } from "react";
 import type { Record as Rec } from "@/lib/slack";
+import { activity, vendorIntel } from "@/lib/intel";
 
 const money = (n: number, cur = "AED") =>
   `${cur} ${n.toLocaleString(undefined, { maximumFractionDigits: 0 })}`;
@@ -67,15 +68,11 @@ export default function Queue() {
   const held = pending.filter((r) => !r.approvable);
   const settled = records.filter((r) => r.decision);
 
-  // Only the overage: money that would leave the business above what was agreed.
-  const overAgreed = pending.reduce((sum, r) => {
-    const c = r.commitment;
-    return sum + (c && r.total > c.amount ? r.total - c.amount : 0);
-  }, 0);
   // Value sitting behind a block, which is a different kind of exposure.
   const heldValue = held.reduce((sum, r) => sum + r.total, 0);
 
   const queued = pending.reduce((s, r) => s + r.total, 0);
+  const act = activity(records);
 
   return (
     <div className="shell">
@@ -129,15 +126,22 @@ export default function Queue() {
               them, quoted and linked.
             </p>
           </div>
+          {loaded && records.length > 0 && (
+            <p className="activity">
+              Ameen reviewed <b>{act.reviewed}</b> document{act.reviewed === 1 ? "" : "s"} in
+              #ap-review, escalated <b>{act.escalated}</b>, blocked <b>{act.blocked}</b>, and
+              approved <b>{act.autoApproved}</b> without a human.
+            </p>
+          )}
         </div>
 
         <div className="band">
-          <div className="risk">
-            <i>Above what was agreed</i>
-            <b>{money(overAgreed)}</b>
+          <div className="won">
+            <i>Caught before payment</i>
+            <b>{money(act.caught)}</b>
           </div>
           <div>
-            <i>In the queue</i>
+            <i>Awaiting approval</i>
             <b>
               {money(queued)}
               <small>
@@ -146,11 +150,11 @@ export default function Queue() {
             </b>
           </div>
           <div>
-            <i>Needs a second approver</i>
+            <i>Needs two approvers</i>
             <b>{pending.filter((r) => r.level >= 3 && r.approvable).length}</b>
           </div>
           <div>
-            <i>Cannot be approved</i>
+            <i>Blocked</i>
             <b>
               {money(heldValue)}
               <small>
@@ -300,6 +304,45 @@ export default function Queue() {
                       </div>
                     ))}
                     {r.findings.length === 0 && <p className="legend">Every check passed.</p>}
+
+                    {(() => {
+                      const v = vendorIntel(records, r.vendor);
+                      const drift = v.timesOver > 0;
+                      return (
+                        <div className="intel">
+                          <h3>What Ameen knows about {v.vendor}</h3>
+                          <div className="intel-grid">
+                            <div>
+                              <i>Documents seen</i>
+                              {v.documents}
+                            </div>
+                            <div>
+                              <i>Invoiced in total</i>
+                              {money(v.invoiced, v.currency)}
+                            </div>
+                            <div className={drift ? "bad" : ""}>
+                              <i>Billed above agreement</i>
+                              {drift
+                                ? `${money(v.overCharged, v.currency)} across ${v.timesOver}`
+                                : "never"}
+                            </div>
+                            <div className={v.accounts.length > 1 ? "bad" : ""}>
+                              <i>Paying accounts used</i>
+                              {v.accounts.length > 1
+                                ? `${v.accounts.length} different`
+                                : v.accounts[0] || "not stated"}
+                            </div>
+                          </div>
+                          {v.accounts.length > 1 && (
+                            <p className="intel-note">
+                              This vendor has been paid to more than one account:{" "}
+                              {v.accounts.join(", ")}. A vendor's bank details rarely change
+                              honestly.
+                            </p>
+                          )}
+                        </div>
+                      );
+                    })()}
                     <div className="facts">
                       <div>
                         <i>Terms</i>
