@@ -10,8 +10,30 @@ export default function Landing() {
         <Link href="/app">Open the approval queue</Link>
       </nav>
 
-      {/* The hero is the confrontation itself: a sentence someone typed, and a
-          number that arrived three weeks later. The rule between them is the gap. */}
+      <section className="lede">
+        <h1>Your invoices are checked against what your team actually promised.</h1>
+        <p>
+          Ameen is an accounts payable agent that sits in the Slack channel where prices get
+          agreed. When the invoice arrives weeks later, it already knows what was said, quotes
+          the message back, and decides who needs to approve it.
+        </p>
+        <div className="doc-actions">
+          <Link href="/app" className="btn-solid">
+            Open the approval queue
+          </Link>
+          <a
+            href="https://github.com/muslimbarahooe007-max/ameen-finance-agent"
+            className="btn-plain"
+            target="_blank"
+            rel="noreferrer"
+          >
+            Read the source
+          </a>
+        </div>
+      </section>
+
+      {/* The hero image is the product's whole argument: a sentence someone
+          typed, and a number that turned up three weeks later. */}
       <section className="confront">
         <div className="said">
           <p className="stamp">2 September, in #ap-review</p>
@@ -31,36 +53,100 @@ export default function Landing() {
         </div>
       </section>
 
-      <section className="thesis">
-        <h1>The finance agent that remembers what was promised.</h1>
-        <p>
-          Finance disputes are almost never arithmetic. They happen because what was agreed
-          lives in a conversation and what gets invoiced arrives as a document, and nothing
-          connects the two. Ameen sits in the channel where the promise is made. When the
-          invoice lands weeks later, it already knows, and it quotes the message back.
-        </p>
-        <div className="doc-actions">
-          <Link href="/app" className="btn-solid">
-            Open the approval queue
-          </Link>
-          <a
-            href="https://github.com/muslimbarahooe007-max/ameen-finance-agent"
-            className="btn-plain"
-            target="_blank"
-            rel="noreferrer"
-          >
-            Read the source
-          </a>
+      <section className="figures">
+        <div>
+          <b>AED 6,000</b>
+          <p>caught on the first invoice put through it</p>
+        </div>
+        <div>
+          <b>7 seconds</b>
+          <p>from document dropped in Slack to a decision</p>
+        </div>
+        <div>
+          <b>6 checks</b>
+          <p>run on every document, each one able to change the approver</p>
+        </div>
+        <div>
+          <b>No database</b>
+          <p>the Slack channel is the record and the audit trail</p>
         </div>
       </section>
 
-      <section className="chapter">
-        <h2>Why a chat window cannot do this</h2>
-        <p>
+      <section className="module">
+        <h2>It reads the conversation, not just the document</h2>
+        <ul>
+          <li>Searches the channel for what was agreed with this vendor</li>
+          <li>Quotes the exact message and links straight back to it</li>
+          <li>Compares the invoice against the purchase order raised in the same channel</li>
+          <li>Flags a price that drifted, with the percentage and the amount</li>
+        </ul>
+        <p className="case">
+          A supplier agrees AED 40,000 in a thread on the second. The invoice arrives on the
+          twenty-third for AED 46,000. Nobody remembers the thread, and nobody would think to
+          look. Ameen posts the difference with the original message attached, and moves the
+          approval from a manager to two signatures.
+        </p>
+      </section>
+
+      <section className="module">
+        <h2>It removes the approve button when the bank details change</h2>
+        <ul>
+          <li>Keeps every account a vendor has ever been paid to</li>
+          <li>Refuses to render an approval control when the account changes</li>
+          <li>Writes nothing to the tracker while the document is held</li>
+          <li>Rejects an approval at the API even if the button is forced</li>
+        </ul>
+        <p className="case">
+          Invoice redirection is the most expensive fraud in corporate finance: a compromised
+          mailbox, a convincing invoice, one altered account number. Most software shows a
+          warning beside the approve button. The warning does not work, because the button is
+          still there. Ameen takes the button away and tells you to phone the vendor on a
+          number you already hold.
+        </p>
+      </section>
+
+      <section className="module">
+        <h2>It decides who approves, and says why</h2>
+        <ul>
+          <li>Routes on amount first, then on what the checks found</li>
+          <li>Escalates exactly one level for any finding, every time</li>
+          <li>Auto-approves a clean document under the threshold with no human at all</li>
+          <li>States the reason in plain language on the card and in the queue</li>
+        </ul>
+        <p className="case">
+          A routine taxi receipt clears itself. The same receipt submitted twice goes to
+          finance. The rule is four lines of code and it is the part most policy engines get
+          wrong, because they flag without changing what happens next.
+        </p>
+      </section>
+
+      <section className="compare">
+        <h2>Why a document scanner cannot do this</h2>
+        <div className="compare-grid">
+          <div>
+            <p className="stamp">A scanner</p>
+            <ul>
+              <li>Reads what is printed on the page</li>
+              <li>Returns its best guess when the page is unclear</li>
+              <li>Matches against records you remembered to load</li>
+              <li>Hands you a row to check by hand</li>
+            </ul>
+          </div>
+          <div>
+            <p className="stamp">Ameen</p>
+            <ul>
+              <li>Reads the page and the room it arrived in</li>
+              <li>Asks in the thread rather than guessing a number</li>
+              <li>Matches against a conversation nobody filed anywhere</li>
+              <li>Changes who has to sign, and explains the change</li>
+            </ul>
+          </div>
+        </div>
+        <p className="case">
           To catch that invoice, something has to remember a conversation from three weeks
-          ago, know which thread it was in, and find it again. A person who could do all
-          that would not need the agent. Ameen&rsquo;s advantage is not intelligence. It is
-          that it was in the room when the promise was made.
+          ago, know which thread it was in, and find it again. A person who could do all that
+          would not need the agent. Ameen&rsquo;s advantage is not intelligence. It is that it
+          was in the room when the promise was made.
         </p>
       </section>
 
@@ -81,28 +167,13 @@ export default function Landing() {
           </li>
           <li>
             <h3>The finding changes who approves</h3>
-            <p>
-              A contradiction escalates one level. A clean match needs nobody at all.
-            </p>
+            <p>A contradiction escalates one level. A clean match needs nobody at all.</p>
+          </li>
+          <li>
+            <h3>The decision lands in the queue</h3>
+            <p>Approve it on the web and the Slack message updates in place.</p>
           </li>
         </ol>
-      </section>
-
-      <section className="chapter">
-        <h2>When the bank account changes, there is no button</h2>
-        <p>
-          Invoice redirection is the most expensive fraud in corporate finance: a
-          compromised mailbox, a convincing invoice, one altered account number. Most
-          software shows a warning beside the approve button. Ameen removes the button,
-          because the button is the thing that gets finance teams defrauded.
-        </p>
-        <div className="held-notice">
-          <p className="stamp held">Held</p>
-          <p>
-            This invoice pays a different account from the last three from this vendor.
-            Verify by phone, on a number you already hold, before anyone approves it.
-          </p>
-        </div>
       </section>
 
       <section className="chapter">
@@ -110,10 +181,15 @@ export default function Landing() {
         <p>
           Ameen attaches the whole structured decision to its own Slack message as
           machine-readable metadata. The channel already holds the record, the evidence and
-          the audit trail, so the approval queue simply reads it back. Approve something on
-          the web and the Slack message updates in place. One source of truth, kept in the
-          same room the promise was made in.
+          the audit trail, so the approval queue simply reads it back. One source of truth,
+          kept in the same room the promise was made in.
         </p>
+        <div className="flow">
+          <span>a promise in Slack</span>
+          <span>an invoice arrives</span>
+          <span>Ameen checks and routes</span>
+          <span>the queue reads it back</span>
+        </div>
       </section>
 
       <footer className="doc-foot">

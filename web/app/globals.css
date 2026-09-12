@@ -346,3 +346,86 @@ html:has(.doc), body:has(.doc) { background: #f2f2ee; }
 
 /* the counter occupies column one; everything else belongs in column two */
 .sequence h3, .sequence p { grid-column: 2; }
+
+/* lede — the claim comes before the evidence ---------------------------- */
+.lede { max-width: 780px; margin: 0 auto; padding: 68px 0 10px; }
+.lede h1 {
+  font-size: clamp(30px, 4.6vw, 46px); font-weight: 600; letter-spacing: -1.1px;
+  line-height: 1.14; margin: 0 0 20px; max-width: 19ch;
+}
+.lede > p {
+  margin: 0 0 28px; font-size: 17.5px; line-height: 1.62; color: var(--ink-soft);
+  max-width: 60ch;
+}
+
+/* the confrontation now sits under the claim as its evidence ------------ */
+.confront { padding: 46px 0 44px; border-top: 1px solid var(--rule-l); margin-top: 44px; }
+
+/* quantified outcomes --------------------------------------------------- */
+.figures {
+  max-width: 780px; margin: 0 auto; display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(155px, 1fr)); gap: 26px 32px;
+  padding: 34px 0 44px; border-top: 1px solid var(--rule-l);
+}
+.figures b {
+  display: block; font-size: 25px; font-weight: 500; letter-spacing: -0.8px;
+  font-variant-numeric: tabular-nums; line-height: 1.1;
+}
+.figures p { margin: 8px 0 0; font-size: 13.5px; line-height: 1.5; color: var(--ink-soft); max-width: 26ch; }
+
+/* product modules: bullets, then the story ------------------------------ */
+.module {
+  max-width: 780px; margin: 0 auto; padding: 42px 0;
+  border-top: 1px solid var(--rule-l);
+}
+.module h2 {
+  font-size: 22px; font-weight: 600; letter-spacing: -0.4px; margin: 0 0 18px;
+  max-width: 30ch; line-height: 1.28;
+}
+.module ul { margin: 0 0 22px; padding: 0; list-style: none; max-width: 62ch; }
+.module ul li {
+  position: relative; padding: 7px 0 7px 20px; font-size: 15.5px; line-height: 1.55;
+  border-bottom: 1px solid var(--rule-l);
+}
+.module ul li:last-child { border-bottom: 0; }
+.module ul li::before {
+  content: ""; position: absolute; left: 0; top: 15px; width: 7px; height: 1px;
+  background: var(--ink-soft);
+}
+.case {
+  margin: 0; font-family: var(--font-serif), Georgia, serif; font-size: 15.5px;
+  line-height: 1.7; color: var(--ink); max-width: 62ch;
+  border-left: 2px solid var(--rule-l); padding-left: 18px;
+}
+
+/* head to head ---------------------------------------------------------- */
+.compare {
+  max-width: 780px; margin: 0 auto; padding: 42px 0;
+  border-top: 1px solid var(--rule-l);
+}
+.compare h2 {
+  font-size: 22px; font-weight: 600; letter-spacing: -0.4px; margin: 0 0 22px;
+  max-width: 30ch; line-height: 1.28;
+}
+.compare-grid {
+  display: grid; grid-template-columns: 1fr 1fr; gap: 34px; margin-bottom: 24px;
+}
+.compare-grid > div:last-child .stamp { color: var(--agreed-ink); font-weight: 600; }
+.compare-grid ul { margin: 0; padding: 0; list-style: none; }
+.compare-grid li {
+  font-size: 14.5px; line-height: 1.5; padding: 8px 0;
+  border-bottom: 1px solid var(--rule-l); color: var(--ink-soft);
+}
+.compare-grid > div:last-child li { color: var(--ink); }
+.compare-grid li:last-child { border-bottom: 0; }
+
+/* flow ------------------------------------------------------------------ */
+.flow { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 24px; }
+.flow span {
+  font-size: 13px; border: 1px solid var(--rule-l); border-radius: 3px;
+  padding: 8px 13px; color: var(--ink-soft); background: #fff;
+}
+
+@media (max-width: 620px) {
+  .compare-grid { grid-template-columns: 1fr; gap: 26px; }
+}
