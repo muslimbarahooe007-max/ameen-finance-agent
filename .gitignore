@@ -5,5 +5,11 @@ __pycache__/
 *.pyc
 service_account.json
 *.db
+*.log
+run-ameen.sh
 PLAN.md
 SPEC-20.md
+web/node_modules/
+web/.next/
+web/.vercel/
+web/.env*.local

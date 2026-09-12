@@ -18,7 +18,7 @@ from datetime import datetime, timezone
 from slack_bolt import App
 from slack_bolt.adapter.socket_mode import SocketModeHandler
 
-from ameen import config, pipeline, present, record, store
+from ameen import config, pipeline, present, record, store, wire
 from ameen.models import Decision, Document, Level
 from ameen.sources import slack_source
 
@@ -82,11 +82,14 @@ def _handle_document(client, file_id: str, channel_id: str, user_id: str) -> Non
 
         decision = pipeline.process_bytes(data, filename, source, messages, permalink_for)
 
+        # The channel is the store: the whole structured record rides along as
+        # Slack message metadata, so the web dashboard needs no database.
         client.chat_update(
             channel=channel_id,
             ts=thinking["ts"],
             text=present.summary_text(decision),
             blocks=present.card(decision),
+            metadata=wire.to_metadata(decision, file_url=source.filename if source else ""),
         )
         log.info(
             "processed %s: %s %s level=%s findings=%s",
@@ -178,10 +181,17 @@ def on_decision(ack, action, body, client, logger):
     if verdict == "approved" and decision.document.iban:
         store.remember_iban(decision.document.vendor, decision.document.iban)
 
+    meta = wire.to_metadata(decision)
+    import json as _json
+    rec = _json.loads(meta["event_payload"]["record"])
+    rec.update({"decision": verdict, "approver": user_id, "decided_at": _now()})
+    meta["event_payload"]["record"] = _json.dumps(rec)
+
     client.chat_update(
         channel=channel_id, ts=ts,
         text=f"{verdict.capitalize()} by <@{user_id}>",
         blocks=present.decided_blocks(decision, verdict, user_id, _now()),
+        metadata=meta,
     )
     client.chat_postMessage(channel=channel_id, thread_ts=ts, text=note.capitalize() + ".")
 
