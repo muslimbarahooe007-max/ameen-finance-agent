@@ -1,0 +1,8 @@
+slack_bolt==1.28.0
+slack_sdk>=3.31.0
+requests>=2.32.0
+gspread==6.2.1
+openai>=1.54.0
+pypdf>=5.1.0
+python-dotenv>=1.0.1
+imap-tools>=1.7.0

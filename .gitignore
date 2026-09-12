@@ -1,0 +1,9 @@
+.env
+.env.*
+.venv/
+__pycache__/
+*.pyc
+service_account.json
+*.db
+PLAN.md
+SPEC-20.md
