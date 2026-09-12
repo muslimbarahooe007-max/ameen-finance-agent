@@ -13,3 +13,5 @@ web/node_modules/
 web/.next/
 web/.vercel/
 web/.env*.local
+
+web/ui-*.png

@@ -22,6 +22,25 @@ _AMOUNT_RE = re.compile(
     re.IGNORECASE,
 )
 _PO_RE = re.compile(r"\b(PO[-\s]?\d{2,8})\b", re.IGNORECASE)
+# Slack clients append their own footers to messages. They are not part of what
+# anybody promised, and they look like a bug when quoted back.
+_FOOTER_RE = re.compile(
+    r"\s*(?:\*?_?Sent using_?\*?\s*\w+|_?via\s+\w+_?|\(sent from .*?\))\s*$",
+    re.IGNORECASE,
+)
+
+
+def clean(text: str) -> str:
+    """The words somebody actually wrote, without their client's signature."""
+    out = (text or "").strip()
+    for _ in range(3):
+        stripped = _FOOTER_RE.sub("", out).strip()
+        if stripped == out:
+            break
+        out = stripped
+    return out
+
+
 _AGREE_RE = re.compile(
     r"\b(agree|agreed|quoted|quote|confirm|confirmed|price|rate|net\s*\d+|"
     r"approved at|settled on|will charge|charging)\b",
@@ -100,7 +119,7 @@ def candidates_from_messages(
                 vendor=vendor,
                 amount=value,
                 currency=currency or "AED",
-                text=text.strip(),
+                text=clean(text),
                 permalink=permalink_for(msg.get("ts", "")),
                 ts=msg.get("ts", ""),
                 reference=po_ref,

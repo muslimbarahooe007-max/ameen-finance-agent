@@ -69,8 +69,14 @@ export default function Queue() {
         </div>
         <div className="count">
           <span className="beat" aria-hidden />
-          {openCount} awaiting you
-          {heldCount > 0 ? `, ${heldCount} held` : ""}
+          {openCount === 0 && heldCount === 0
+            ? "queue clear"
+            : [
+                openCount > 0 ? `${openCount} awaiting you` : null,
+                heldCount > 0 ? `${heldCount} held` : null,
+              ]
+                .filter(Boolean)
+                .join(", ")}
         </div>
       </div>
 
@@ -105,7 +111,11 @@ export default function Queue() {
                 <div className="party">
                   <b>{r.vendor || "Unknown vendor"}</b>
                   <small>
-                    {[r.reference, r.po_reference, r.doc_date].filter(Boolean).join("  ")}
+                    {[r.reference, r.po_reference, r.doc_date]
+                      .filter(Boolean)
+                      .map((bit) => (
+                        <span key={bit}>{bit}</span>
+                      ))}
                   </small>
                 </div>
 
@@ -221,6 +231,15 @@ export default function Queue() {
           );
         })}
       </div>
+
+      <footer className="colophon">
+        <p>
+          No database. Each decision travels as metadata on Ameen&rsquo;s own Slack
+          message, so the channel holds the record, the evidence and the audit trail.
+          This page reads it back.
+        </p>
+        <p>Approving here updates the Slack card in place.</p>
+      </footer>
     </main>
   );
 }

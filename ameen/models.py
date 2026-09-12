@@ -40,7 +40,7 @@ class Level(IntEnum):
             Level.L1_MANAGER: "L1 manager approval",
             Level.L2_FINANCE: "L2 finance approval",
             Level.L3_DUAL: "L3 dual approval",
-            Level.BLOCKED: "BLOCKED - cannot be approved here",
+            Level.BLOCKED: "Blocked",
         }[self]
 
 

@@ -23,19 +23,21 @@ html, body {
   -webkit-font-smoothing: antialiased;
 }
 
-.sheet { max-width: 1040px; margin: 0 auto; padding: 40px 24px 96px; }
+.sheet { max-width: 1040px; margin: 0 auto; padding: 40px 24px 40px; min-height: 100vh;
+          display: flex; flex-direction: column; }
 
 /* masthead ---------------------------------------------------------- */
-.masthead { display: flex; align-items: flex-end; justify-content: space-between; gap: 20px; flex-wrap: wrap; }
+.masthead { display: flex; align-items: baseline; justify-content: space-between; gap: 32px; flex-wrap: wrap; }
+.masthead > div:first-child { flex: 1 1 380px; }
 .masthead h1 {
   margin: 0; font-size: 26px; font-weight: 620; letter-spacing: -0.4px;
 }
 .masthead h1 span { color: var(--muted); font-weight: 400; margin-left: 10px; font-size: 21px; }
-.strap { color: var(--muted); margin: 7px 0 0; font-size: 14.5px; max-width: 62ch; }
+.strap { color: var(--muted); margin: 7px 0 0; font-size: 14px; max-width: 56ch; }
 .count { color: var(--muted); font-size: 13.5px; display: flex; align-items: center; gap: 8px; white-space: nowrap; }
 .beat { width: 6px; height: 6px; border-radius: 50%; background: var(--agreed); }
 
-.ledger { margin-top: 30px; border-top: 1px solid var(--rule); }
+.ledger { margin-top: 26px; border-top: 1px solid var(--rule); flex: 1; }
 
 /* a row is a ruled ledger line, not a card ------------------------- */
 .entry { border-bottom: 1px solid var(--rule); }
@@ -44,14 +46,16 @@ html, body {
 
 .line {
   display: grid;
-  grid-template-columns: minmax(190px, 1.25fr) minmax(230px, 1fr) minmax(150px, .85fr) auto;
-  gap: 26px; align-items: start; padding: 20px 4px; cursor: pointer;
+  grid-template-columns: minmax(170px, 1.05fr) minmax(220px, .95fr) minmax(165px, .9fr) minmax(150px, auto);
+  gap: 22px; align-items: start; padding: 16px 4px 14px; cursor: pointer;
 }
 .line:hover { background: var(--rule-soft); }
 
 .party { min-width: 0; }
 .party b { font-weight: 620; font-size: 15.5px; display: block; }
-.party small { color: var(--muted); font-size: 12.5px; display: block; margin-top: 3px; }
+.party small { color: var(--muted); font-size: 12.5px; display: block; margin-top: 3px;
+  font-variant-numeric: tabular-nums; }
+.party small span + span::before { content: "·"; margin: 0 6px; color: var(--faint); }
 
 /* the confrontation: what was agreed against what was invoiced ------ */
 .figures { display: flex; align-items: baseline; gap: 16px; font-variant-numeric: tabular-nums; }
@@ -67,9 +71,10 @@ html, body {
 }
 
 .routing { font-size: 13.5px; }
-.routing b { display: block; font-weight: 600; }
+.routing b { display: block; font-weight: 600; text-wrap: balance; }
 .routing small { color: var(--muted); font-size: 12.5px; display: block; margin-top: 3px; line-height: 1.45; }
 .routing.blocked b { color: var(--blocked); }
+.routing small { max-width: 34ch; }
 
 .act { display: flex; gap: 8px; align-items: center; justify-content: flex-end; }
 button {
@@ -84,11 +89,11 @@ button.refuse:hover:not(:disabled) { background: #2f1a1c; }
 button:disabled { opacity: .45; cursor: not-allowed; }
 button:focus-visible, .line:focus-visible { outline: 2px solid var(--link); outline-offset: 2px; }
 
-.held { font-size: 12.5px; color: var(--blocked); max-width: 22ch; text-align: right; line-height: 1.4; }
+.held { font-size: 12.5px; color: var(--blocked); max-width: 24ch; text-align: right; line-height: 1.4; margin: 0; }
 .settled { font-size: 13px; color: var(--agreed); text-align: right; }
 
 /* the quoted promise ------------------------------------------------ */
-.quote { padding: 0 4px 20px; }
+.quote { padding: 0 4px 17px; }
 .quote blockquote {
   margin: 0; padding: 0 0 0 14px; border-left: 2px solid var(--agreed);
   color: var(--text); font-size: 14px;
@@ -123,3 +128,11 @@ a:hover { text-decoration: underline; }
   .line { grid-template-columns: 1fr; gap: 14px; }
   .act, .held, .settled { justify-content: flex-start; text-align: left; }
 }
+
+/* footer ------------------------------------------------------------ */
+.colophon {
+  margin-top: 34px; padding-top: 16px; border-top: 1px solid var(--rule);
+  color: var(--faint); font-size: 12.5px; display: flex; gap: 26px; flex-wrap: wrap;
+}
+.colophon p { margin: 0; max-width: 58ch; }
+.colophon a { color: var(--muted); }
