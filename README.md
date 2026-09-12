@@ -1,8 +1,12 @@
 # Ameen — the finance agent that remembers what was promised
 
-Ameen is a Slack agent for accounts payable. It lives in the channel where your
-team agrees things with vendors, so when the invoice arrives weeks later it
-already knows what was promised — and it cites the exact message.
+Ameen is a Slack agent for accounts payable, with a web approval queue. It lives
+in the channel where your team agrees things with vendors, so when the invoice
+arrives weeks later it already knows what was promised — and it cites the exact
+message.
+
+**Live dashboard:** https://ameen-2oe89m6l7-muslimbarahooe007-maxs-projects.vercel.app
+**Demo script:** [DEMO.md](DEMO.md) · **Setup and API notes:** [STACK.md](STACK.md)
 
 *Ameen* (أمين) means trustworthy. *Amīn al-sundūq* is the Arabic for treasurer.
 
@@ -49,6 +53,25 @@ The button is what gets finance teams defrauded.
 
 ---
 
+## The approval queue, and why there is no database
+
+Drop an invoice in Slack and it appears in a live web queue where finance can
+approve or reject it. Approving there updates the Slack card in place.
+
+There is **no database**. Ameen attaches the whole structured decision to its own
+Slack message as machine-readable metadata, so the channel already holds the
+record, the evidence and the audit trail in one place. The dashboard reads it
+straight back out with `conversations.history` and writes decisions back with
+`chat.update`.
+
+That is the same claim the product makes about commitments, applied to its own
+storage: the channel is the system of record.
+
+The dashboard is laid out as a ledger rather than a card grid, because the thing
+a controller needs to see is a confrontation between two numbers — what was
+agreed, and what was invoiced — with the promise quoted underneath and a link to
+the message it came from.
+
 ## Run it
 
 ```bash
@@ -61,6 +84,16 @@ python app.py
 It runs in **Socket Mode**, so there is no public URL, no tunnel and no deploy.
 Slack app setup is five to ten minutes; the exact click path, the required scopes
 and the five things that waste the most time are in [STACK.md](STACK.md).
+
+### The dashboard
+
+```bash
+cd web
+npm install
+SLACK_BOT_TOKEN=xoxb-... AMEEN_CHANNEL_ID=C0... npx next dev
+```
+
+Deployed on Vercel with the same two environment variables. No other services.
 
 ### Prove it works without any tokens
 
@@ -109,6 +142,9 @@ ingest ──▶ extract ──▶ memory ──▶ checks ──▶ route ─�
 | `ameen/present.py` | Block Kit rendering, including the absent button |
 | `ameen/record.py` | the tracker. Degrades to local-only rather than failing |
 | `ameen/store.py` | SQLite. Bank history and duplicates need memory |
+| `ameen/wire.py` | the decision as Slack message metadata — the shared record |
+| `web/lib/slack.ts` | reads the queue out of the channel, writes decisions back |
+| `web/app/page.tsx` | the approval ledger |
 
 Two decisions make the rest cheap. **Sources are adapters**, so email ingestion is
 a second adapter and changes nothing downstream. **Checks are a registry**, so
@@ -161,12 +197,14 @@ auto-approved; the same claim submitted twice goes to finance.
 This repository was initialised on 12 September 2026 and every commit was made
 during the event. The commit history is the evidence.
 
-**Built and working:**
+**Built and working**, all verified against the live workspace:
 Slack ingest in Socket Mode, file download, vision extraction with per-field
 confidence, channel-memory commitment search with permalink citation, six
 compliance checks, severity-driven routing, the BLOCKED state, interactive
 approvals that update the card in place, the "Why?" decision trail, SQLite
-persistence, Google Sheets tracker, and an offline self-test.
+persistence, the Next.js approval dashboard deployed on Vercel reading and
+writing through Slack message metadata, a Google Sheets tracker, and an offline
+self-test.
 
 **Designed and specified, not built today** — the interfaces exist, the
 implementations do not:
