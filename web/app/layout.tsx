@@ -2,9 +2,9 @@ import "./globals.css";
 import type { Metadata } from "next";
 
 export const metadata: Metadata = {
-  title: "Ameen — approval queue",
+  title: "Ameen — the finance agent that remembers what was promised",
   description:
-    "Invoices arrive in Slack and land here for approval, with the commitment they contradict quoted inline.",
+    "Invoices arrive in Slack. What your team agreed in that channel arrives with them, cited and linked.",
 };
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {

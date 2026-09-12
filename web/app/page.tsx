@@ -1,373 +1,177 @@
-"use client";
+import Link from "next/link";
 
-import { useCallback, useEffect, useState } from "react";
-import type { Record as Rec } from "@/lib/slack";
-import { activity, vendorIntel } from "@/lib/intel";
-
-const money = (n: number, cur = "AED") =>
-  `${cur} ${n.toLocaleString(undefined, { maximumFractionDigits: 0 })}`;
-
-const TRACK: { [k: string]: string } = {
-  T1_reimbursement: "Reimbursement",
-  T2_vendor_invoice: "Vendor invoice",
-  T3_purchase_order: "Purchase order",
-  T4_contract: "Contract",
+export const metadata = {
+  title: "Ameen — the finance agent that remembers what was promised",
 };
 
-export default function Queue() {
-  const [records, setRecords] = useState<Rec[]>([]);
-  const [error, setError] = useState<string | null>(null);
-  const [open, setOpen] = useState<string | null>(null);
-  const [busy, setBusy] = useState<string | null>(null);
-  const [loaded, setLoaded] = useState(false);
-  const [live, setLive] = useState(false);
-
-  const load = useCallback(async () => {
-    try {
-      const res = await fetch("/api/decisions", { cache: "no-store" });
-      const json = await res.json();
-      if (!json.ok) throw new Error(json.error);
-      setRecords(json.records);
-      setError(null);
-      setLive(true);
-    } catch (err: any) {
-      setError(String(err?.message ?? err));
-      setLive(false);
-    } finally {
-      setLoaded(true);
-    }
-  }, []);
-
-  // An invoice dropped into Slack appears here on its own.
-  useEffect(() => {
-    load();
-    const t = setInterval(load, 4000);
-    return () => clearInterval(t);
-  }, [load]);
-
-  async function settle(ts: string, verdict: "approved" | "rejected") {
-    setBusy(ts);
-    try {
-      const res = await fetch("/api/decide", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ ts, verdict, approver: "Finance" }),
-      });
-      const json = await res.json();
-      if (!json.ok) throw new Error(json.error);
-      await load();
-    } catch (err: any) {
-      setError(String(err?.message ?? err));
-    } finally {
-      setBusy(null);
-    }
-  }
-
-  const pending = records.filter((r) => !r.decision);
-  const waiting = pending.filter((r) => r.approvable);
-  const held = pending.filter((r) => !r.approvable);
-  const settled = records.filter((r) => r.decision);
-
-  // Value sitting behind a block, which is a different kind of exposure.
-  const heldValue = held.reduce((sum, r) => sum + r.total, 0);
-
-  const queued = pending.reduce((s, r) => s + r.total, 0);
-  const act = activity(records);
-
+export default function Landing() {
   return (
-    <div className="shell">
-      <aside className="rail">
+    <main className="lp">
+      <nav className="lp-nav">
+        <div className="lp-brand">
+          <b>Ameen</b>
+          <span>أمين</span>
+        </div>
+        <Link href="/app" className="lp-cta-small">
+          Open the queue →
+        </Link>
+      </nav>
+
+      <section className="lp-hero">
+        <p className="lp-eyebrow">Accounts payable, inside Slack</p>
+        <h1>
+          The finance agent that remembers
+          <br />
+          what was promised.
+        </h1>
+        <p className="lp-sub">
+          Finance disputes are almost never arithmetic. They happen because what was agreed
+          lives in a Slack conversation, and what gets invoiced arrives as a document — and
+          nothing connects the two. Ameen lives in the channel where the promise was made, so
+          when the invoice lands, it already knows.
+        </p>
+        <div className="lp-actions">
+          <Link href="/app" className="lp-cta">
+            Open the approval queue
+          </Link>
+          <a
+            href="https://github.com/muslimbarahooe007-max/ameen-finance-agent"
+            className="lp-cta-ghost"
+            target="_blank"
+            rel="noreferrer"
+          >
+            View the source
+          </a>
+        </div>
+
+        <div className="lp-card">
+          <div className="lp-card-row">
+            <div>
+              <b className="lp-card-vendor">Gulf Supplies LLC</b>
+              <small className="lp-card-ref">INV-2291 · PO-1043 · 2026-09-12</small>
+            </div>
+            <span className="lp-card-tag">Vendor invoice</span>
+          </div>
+          <div className="lp-card-figures">
+            <div className="lp-fig agreed">
+              <i>agreed</i>
+              <b>AED 40,000</b>
+            </div>
+            <div className="lp-fig over">
+              <i>invoiced</i>
+              <b>AED 46,000</b>
+            </div>
+            <span className="lp-gap">+15%</span>
+          </div>
+          <div className="lp-track">
+            <span className="lp-track-base" style={{ width: "87%" }} />
+            <span className="lp-track-excess" style={{ width: "13%" }} />
+          </div>
+          <div className="lp-quote">
+            <q>Spoke to Gulf Supplies — they have agreed AED 40,000 for the 12 units, net 30.</q>
+            <footer>Said in #ap-review, three weeks before this invoice existed.</footer>
+          </div>
+          <div className="lp-card-route">
+            <b>L3 dual approval</b>
+            <small>Escalated one level: contradicts what was agreed in this channel</small>
+          </div>
+        </div>
+      </section>
+
+      <section className="lp-section">
+        <p className="lp-kicker">The problem</p>
+        <h2>The promise and the invoice never meet.</h2>
+        <p className="lp-lede">
+          A price gets agreed in a thread on a Tuesday. A purchase order is raised a week
+          later. The invoice arrives three weeks after that, as a PDF. Nobody cross-checks the
+          conversation, because a conversation is not data, and nobody remembers which thread
+          it was in. A chat window cannot fix this — it would need a human to remember, find,
+          and paste the thread in. Anyone who could do that would not need the agent.
+        </p>
+      </section>
+
+      <section className="lp-section">
+        <p className="lp-kicker">How it works</p>
+        <h2>Ameen was already in the room.</h2>
+        <div className="lp-steps">
+          <div className="lp-step">
+            <i>01</i>
+            <b>A promise gets made</b>
+            <p>Someone agrees a price or a term with a vendor, in the open, in Slack.</p>
+          </div>
+          <div className="lp-step">
+            <i>02</i>
+            <b>An invoice arrives</b>
+            <p>Dropped into the channel, or forwarded from the inbox — a photo, a PDF, either.</p>
+          </div>
+          <div className="lp-step">
+            <i>03</i>
+            <b>Ameen cites the promise</b>
+            <p>It searches the channel, finds what was agreed, and links the exact message.</p>
+          </div>
+          <div className="lp-step">
+            <i>04</i>
+            <b>It routes, not just flags</b>
+            <p>A contradiction escalates the approval level. A clean match needs no one at all.</p>
+          </div>
+        </div>
+      </section>
+
+      <section className="lp-section lp-highlight">
+        <p className="lp-kicker">Control, expressed as a constraint</p>
+        <h2>When the bank account changes, there is no button.</h2>
+        <p className="lp-lede">
+          Invoice redirection is the most expensive fraud in corporate finance: a
+          compromised email, a real-looking invoice, a changed account. Most tools show a
+          warning next to an Approve button. Ameen does not offer the button at all.
+        </p>
+        <div className="lp-blocked">
+          <b>Blocked</b>
+          <p>
+            This invoice pays a different account from the last three from this vendor.
+            Verify by phone, on a number you already hold, before anyone approves this. No
+            approval button has been offered.
+          </p>
+        </div>
+      </section>
+
+      <section className="lp-section">
+        <p className="lp-kicker">Architecture</p>
+        <h2>No database. The channel is the record.</h2>
+        <p className="lp-lede">
+          Ameen attaches the whole structured decision to its own Slack message as
+          machine-readable metadata. The channel already holds the record, the evidence and
+          the audit trail — the approval queue just reads it back. Approve it on the web, and
+          the Slack card updates in place. One source of truth, in the place the promise was
+          made.
+        </p>
+        <div className="lp-flow" aria-hidden>
+          <span>Slack channel</span>
+          <span className="lp-arrow">→</span>
+          <span>Ameen</span>
+          <span className="lp-arrow">→</span>
+          <span>Message metadata</span>
+          <span className="lp-arrow">→</span>
+          <span>Approval queue</span>
+        </div>
+      </section>
+
+      <footer className="lp-footer">
         <div>
-          <div className="brand">
-            <b>Ameen</b>
-            <span>أمين</span>
-          </div>
-          <p className="brand-sub">Accounts payable, watching the channel where the promises were made.</p>
+          <b>Ameen</b> <span>أمين</span> — trustworthy. The Arabic root of{" "}
+          <i>amīn al-sundūq</i>, treasurer.
         </div>
-
-        <section>
-          <h2>Connection</h2>
-          <div className="wire">
-            <span className={`pulse${live ? "" : " cold"}`} aria-hidden />
-            {live ? "Reading the channel" : "No connection"}
-          </div>
-          <div className="wire">
-            <b>#ap-review</b>
-          </div>
-        </section>
-
-        <section>
-          <h2>Queue</h2>
-          <div className="tally">
-            <div>
-              Awaiting approval <b>{waiting.length}</b>
-            </div>
-            <div className={held.length ? "hot" : ""}>
-              Held <b>{held.length}</b>
-            </div>
-            <div>
-              Settled today <b>{settled.length}</b>
-            </div>
-          </div>
-        </section>
-
-        <footer>
-          No database. Every decision rides along as metadata on Ameen&rsquo;s own Slack
-          message, so the channel is the record, the evidence and the audit trail.
-        </footer>
-      </aside>
-
-      <main className="main">
-        <div className="head">
-          <div>
-            <h1>Approval queue</h1>
-            <p>
-              Invoices arrive in Slack. What your team agreed in that channel arrives with
-              them, quoted and linked.
-            </p>
-          </div>
-          {loaded && records.length > 0 && (
-            <p className="activity">
-              Ameen reviewed <b>{act.reviewed}</b> document{act.reviewed === 1 ? "" : "s"} in
-              #ap-review, escalated <b>{act.escalated}</b>, blocked <b>{act.blocked}</b>, and
-              approved <b>{act.autoApproved}</b> without a human.
-            </p>
-          )}
+        <div className="lp-footer-links">
+          <Link href="/app">Approval queue</Link>
+          <a
+            href="https://github.com/muslimbarahooe007-max/ameen-finance-agent"
+            target="_blank"
+            rel="noreferrer"
+          >
+            Source on GitHub
+          </a>
         </div>
-
-        <div className="band">
-          <div className="won">
-            <i>Caught before payment</i>
-            <b>{money(act.caught)}</b>
-          </div>
-          <div>
-            <i>Awaiting approval</i>
-            <b>
-              {money(queued)}
-              <small>
-                {pending.length} document{pending.length === 1 ? "" : "s"}
-              </small>
-            </b>
-          </div>
-          <div>
-            <i>Needs two approvers</i>
-            <b>{pending.filter((r) => r.level >= 3 && r.approvable).length}</b>
-          </div>
-          <div>
-            <i>Blocked</i>
-            <b>
-              {money(heldValue)}
-              <small>
-                {held.length} held
-              </small>
-            </b>
-          </div>
-        </div>
-
-        {error && <p className="alert">{error}</p>}
-
-        <div className="queue">
-          {loaded && records.length === 0 && !error && (
-            <div className="void">
-              <b>Nothing waiting on you.</b>
-              Drop an invoice into #ap-review and it will appear here within a few seconds.
-            </div>
-          )}
-
-          {records.map((r) => {
-            const c = r.commitment;
-            const excess = c && r.total > c.amount ? r.total - c.amount : 0;
-            const pct = c && c.amount ? ((r.total - c.amount) / c.amount) * 100 : 0;
-            const basePct = c ? Math.max(6, Math.min(100, (Math.min(r.total, c.amount) / Math.max(r.total, c.amount)) * 100)) : 100;
-            const isOpen = open === r.ts;
-
-            return (
-              <article
-                key={r.ts}
-                className={`entry${!r.approvable && !r.decision ? " held" : ""}${r.decision ? " done" : ""}`}
-              >
-                <div
-                  className="line"
-                  role="button"
-                  tabIndex={0}
-                  aria-expanded={isOpen}
-                  onClick={() => setOpen(isOpen ? null : r.ts)}
-                  onKeyDown={(e) => {
-                    if (e.key === "Enter" || e.key === " ") {
-                      e.preventDefault();
-                      setOpen(isOpen ? null : r.ts);
-                    }
-                  }}
-                >
-                  <div className="who">
-                    <b>{r.vendor || "Unknown vendor"}</b>
-                    <small>
-                      {[r.reference, r.po_reference, r.doc_date].filter(Boolean).map((bit) => (
-                        <span key={bit}>{bit}</span>
-                      ))}
-                    </small>
-                    <span className="kind">{TRACK[r.track] ?? "Document"}</span>
-                  </div>
-
-                  <div className="gauge">
-                    <div className="nums">
-                      {c && (
-                        <span className="n a">
-                          <i>agreed</i>
-                          <b>{money(c.amount, c.currency)}</b>
-                        </span>
-                      )}
-                      <span className={`n b${excess ? "" : " level"}`}>
-                        <i>invoiced</i>
-                        <b>{money(r.total, r.currency)}</b>
-                      </span>
-                      {excess > 0 && <span className="gap">+{pct.toFixed(0)}%</span>}
-                    </div>
-
-                    <div className="track">
-                      {excess > 0 ? (
-                        <>
-                          <span className="base" style={{ width: `${basePct}%` }} />
-                          <span className="excess" style={{ width: `${100 - basePct}%` }} />
-                        </>
-                      ) : (
-                        <span className="even" style={{ width: "100%" }} />
-                      )}
-                    </div>
-
-                    <p className="legend">
-                      {excess > 0
-                        ? `${money(excess, r.currency)} more than this vendor agreed to in the channel`
-                        : c
-                          ? "Matches what was agreed in the channel"
-                          : "No prior commitment found for this vendor"}
-                    </p>
-                  </div>
-
-                  <div className={`route${!r.approvable ? " stop" : ""}`}>
-                    <b>{r.level_label}</b>
-                    <small>{r.reason}</small>
-                  </div>
-
-                  {r.decision ? (
-                    <div className="done-note">
-                      {r.decision} by {r.approver}
-                      <span>{r.decided_at}</span>
-                    </div>
-                  ) : r.approvable ? (
-                    <div className="act" onClick={(e) => e.stopPropagation()}>
-                      <button className="yes" disabled={busy === r.ts} onClick={() => settle(r.ts, "approved")}>
-                        Approve
-                      </button>
-                      <button className="no" disabled={busy === r.ts} onClick={() => settle(r.ts, "rejected")}>
-                        Reject
-                      </button>
-                    </div>
-                  ) : (
-                    <p className="stop-note">Verify the bank details by phone before this can be approved.</p>
-                  )}
-                </div>
-
-                {c && (
-                  <div className="promise">
-                    <q>{c.text}</q>
-                    <footer>
-                      Said in #ap-review before this invoice existed.{" "}
-                      {c.permalink && (
-                        <a href={c.permalink} target="_blank" rel="noreferrer">
-                          Open the message
-                        </a>
-                      )}
-                    </footer>
-                  </div>
-                )}
-
-                {isOpen && (
-                  <div className="drawer">
-                    {r.findings.map((f) => (
-                      <div key={f.code} className={`flag s-${f.severity}`}>
-                        <span className="bar" aria-hidden />
-                        <div>
-                          <b>
-                            {f.title}
-                            <span className="sev">{f.severity}</span>
-                          </b>
-                          <p>
-                            {f.detail}{" "}
-                            {f.evidence_url && (
-                              <a href={f.evidence_url} target="_blank" rel="noreferrer">
-                                See the evidence
-                              </a>
-                            )}
-                          </p>
-                        </div>
-                      </div>
-                    ))}
-                    {r.findings.length === 0 && <p className="legend">Every check passed.</p>}
-
-                    {(() => {
-                      const v = vendorIntel(records, r.vendor);
-                      const drift = v.timesOver > 0;
-                      return (
-                        <div className="intel">
-                          <h3>What Ameen knows about {v.vendor}</h3>
-                          <div className="intel-grid">
-                            <div>
-                              <i>Documents seen</i>
-                              {v.documents}
-                            </div>
-                            <div>
-                              <i>Invoiced in total</i>
-                              {money(v.invoiced, v.currency)}
-                            </div>
-                            <div className={drift ? "bad" : ""}>
-                              <i>Billed above agreement</i>
-                              {drift
-                                ? `${money(v.overCharged, v.currency)} across ${v.timesOver}`
-                                : "never"}
-                            </div>
-                            <div className={v.accounts.length > 1 ? "bad" : ""}>
-                              <i>Paying accounts used</i>
-                              {v.accounts.length > 1
-                                ? `${v.accounts.length} different`
-                                : v.accounts[0] || "not stated"}
-                            </div>
-                          </div>
-                          {v.accounts.length > 1 && (
-                            <p className="intel-note">
-                              This vendor has been paid to more than one account:{" "}
-                              {v.accounts.join(", ")}. A vendor's bank details rarely change
-                              honestly.
-                            </p>
-                          )}
-                        </div>
-                      );
-                    })()}
-                    <div className="facts">
-                      <div>
-                        <i>Terms</i>
-                        {r.payment_terms || "not stated"}
-                      </div>
-                      <div>
-                        <i>Tax number</i>
-                        {r.trn || "missing"}
-                      </div>
-                      <div>
-                        <i>Paying account</i>
-                        {r.iban_masked || "not stated"}
-                      </div>
-                      <div>
-                        <i>Record</i>
-                        {r.doc_id}
-                      </div>
-                    </div>
-                  </div>
-                )}
-              </article>
-            );
-          })}
-        </div>
-      </main>
-    </div>
+      </footer>
+    </main>
   );
 }
