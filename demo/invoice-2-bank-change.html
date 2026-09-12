@@ -1,0 +1,68 @@
+<style>
+  @page { size: A4; margin: 18mm; }
+  body { font: 13px/1.55 "Helvetica Neue", Arial, sans-serif; color: #1a1a1a; max-width: 760px; margin: 0 auto; padding: 28px; }
+  .top { display: flex; justify-content: space-between; align-items: flex-start; border-bottom: 2px solid #1a1a1a; padding-bottom: 14px; }
+  .who { font-size: 19px; font-weight: 700; letter-spacing: -0.2px; }
+  .sub { color: #555; font-size: 12px; margin-top: 3px; }
+  h1 { font-size: 15px; letter-spacing: 2px; text-transform: uppercase; margin: 0; text-align: right; }
+  .meta { margin-top: 4px; font-size: 12px; color: #333; text-align: right; }
+  .grid { display: flex; gap: 48px; margin: 22px 0 18px; }
+  .lab { font-size: 10px; letter-spacing: 1.2px; text-transform: uppercase; color: #777; margin-bottom: 4px; }
+  table { width: 100%; border-collapse: collapse; margin-top: 8px; }
+  th { text-align: left; font-size: 10px; letter-spacing: 1.1px; text-transform: uppercase; color: #777; border-bottom: 1px solid #ccc; padding: 7px 0; }
+  td { padding: 9px 0; border-bottom: 1px solid #eee; }
+  .r { text-align: right; }
+  .tot { margin-top: 16px; margin-left: auto; width: 290px; }
+  .tot div { display: flex; justify-content: space-between; padding: 5px 0; }
+  .tot .g { border-top: 2px solid #1a1a1a; margin-top: 6px; padding-top: 9px; font-weight: 700; font-size: 15px; }
+  .pay { margin-top: 26px; background: #f6f6f4; padding: 14px 16px; font-size: 12px; }
+  .pay b { display: block; font-size: 10px; letter-spacing: 1.2px; text-transform: uppercase; color: #777; margin-bottom: 5px; }
+  .foot { margin-top: 24px; font-size: 11px; color: #888; border-top: 1px solid #eee; padding-top: 10px; }
+</style>
+
+<div class="top">
+  <div>
+    <div class="who">Gulf Supplies LLC</div>
+    <div class="sub">Warehouse 14, Mussafah M-17, Abu Dhabi, UAE<br>TRN 100123456700003</div>
+  </div>
+  <div>
+    <h1>Tax Invoice</h1>
+    <div class="meta">INV-2292<br>12 September 2026</div>
+  </div>
+</div>
+
+<div class="grid">
+  <div>
+    <div class="lab">Billed to</div>
+    Nova Operations FZ-LLC<br>Masdar City, Abu Dhabi
+  </div>
+  <div>
+    <div class="lab">Purchase order</div>
+    PO-1043
+  </div>
+  <div>
+    <div class="lab">Payment terms</div>
+    Net 30
+  </div>
+</div>
+
+<table>
+  <tr><th>Description</th><th class="r">Qty</th><th class="r">Unit price</th><th class="r">Amount</th></tr>
+  <tr><td>Industrial shelving unit, 2.4m galvanised</td><td class="r">12</td><td class="r">3,174.60</td><td class="r">38,095.20</td></tr>
+  <tr><td>Delivery and on-site assembly</td><td class="r">1</td><td class="r">0.00</td><td class="r">0.00</td></tr>
+</table>
+
+<div class="tot">
+  <div><span>Subtotal</span><span>AED 38,095.20</span></div>
+  <div><span>VAT 5%</span><span>AED 1,904.80</span></div>
+  
+  <div class="g"><span>Total due</span><span>AED 40,000.00</span></div>
+</div>
+
+<div class="pay">
+  <b>Payment details</b>
+  Gulf Supplies LLC &middot; Abu Dhabi Commercial Bank<br>
+  IBAN AE770339988776655443322 &middot; Swift ADCBAEAA
+</div>
+
+<div class="foot">Authorised signatory: A. Mansoor, Commercial Manager &middot; Queries: accounts@gulfsupplies.example &middot; Note: updated banking details, please remit to the account above</div>
