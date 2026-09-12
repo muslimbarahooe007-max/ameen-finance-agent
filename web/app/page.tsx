@@ -3,8 +3,15 @@
 import { useCallback, useEffect, useState } from "react";
 import type { Record as Rec } from "@/lib/slack";
 
-const money = (n: number, cur: string) =>
+const money = (n: number, cur = "AED") =>
   `${cur} ${n.toLocaleString(undefined, { maximumFractionDigits: 0 })}`;
+
+const TRACK: { [k: string]: string } = {
+  T1_reimbursement: "Reimbursement",
+  T2_vendor_invoice: "Vendor invoice",
+  T3_purchase_order: "Purchase order",
+  T4_contract: "Contract",
+};
 
 export default function Queue() {
   const [records, setRecords] = useState<Rec[]>([]);
@@ -12,6 +19,7 @@ export default function Queue() {
   const [open, setOpen] = useState<string | null>(null);
   const [busy, setBusy] = useState<string | null>(null);
   const [loaded, setLoaded] = useState(false);
+  const [live, setLive] = useState(false);
 
   const load = useCallback(async () => {
     try {
@@ -20,14 +28,16 @@ export default function Queue() {
       if (!json.ok) throw new Error(json.error);
       setRecords(json.records);
       setError(null);
+      setLive(true);
     } catch (err: any) {
       setError(String(err?.message ?? err));
+      setLive(false);
     } finally {
       setLoaded(true);
     }
   }, []);
 
-  // The queue is live: an invoice dropped in Slack shows up here on its own.
+  // An invoice dropped into Slack appears here on its own.
   useEffect(() => {
     load();
     const t = setInterval(load, 4000);
@@ -52,194 +62,269 @@ export default function Queue() {
     }
   }
 
-  const openCount = records.filter((r) => !r.decision && r.approvable).length;
-  const heldCount = records.filter((r) => !r.approvable && !r.decision).length;
+  const pending = records.filter((r) => !r.decision);
+  const waiting = pending.filter((r) => r.approvable);
+  const held = pending.filter((r) => !r.approvable);
+  const settled = records.filter((r) => r.decision);
+
+  // Only the overage: money that would leave the business above what was agreed.
+  const overAgreed = pending.reduce((sum, r) => {
+    const c = r.commitment;
+    return sum + (c && r.total > c.amount ? r.total - c.amount : 0);
+  }, 0);
+  // Value sitting behind a block, which is a different kind of exposure.
+  const heldValue = held.reduce((sum, r) => sum + r.total, 0);
+
+  const queued = pending.reduce((s, r) => s + r.total, 0);
 
   return (
-    <main className="sheet">
-      <div className="masthead">
+    <div className="shell">
+      <aside className="rail">
         <div>
-          <h1>
-            Ameen<span>أمين</span>
-          </h1>
-          <p className="strap">
-            Invoices arrive in Slack. What your team promised in that channel arrives with
-            them.
-          </p>
-        </div>
-        <div className="count">
-          <span className="beat" aria-hidden />
-          {openCount === 0 && heldCount === 0
-            ? "queue clear"
-            : [
-                openCount > 0 ? `${openCount} awaiting you` : null,
-                heldCount > 0 ? `${heldCount} held` : null,
-              ]
-                .filter(Boolean)
-                .join(", ")}
-        </div>
-      </div>
-
-      {error && <p className="notice">{error}</p>}
-
-      <div className="ledger">
-        {loaded && records.length === 0 && !error && (
-          <div className="blank">
-            <b>Nothing in the queue.</b>
-            Drop an invoice into the Slack channel and it will appear here.
+          <div className="brand">
+            <b>Ameen</b>
+            <span>أمين</span>
           </div>
-        )}
+          <p className="brand-sub">Accounts payable, watching the channel where the promises were made.</p>
+        </div>
 
-        {records.map((r) => {
-          const cited = r.commitment;
-          const over = cited && r.total > cited.amount;
-          const delta = cited && cited.amount ? (r.total - cited.amount) / cited.amount : 0;
-          const isOpen = open === r.ts;
+        <section>
+          <h2>Connection</h2>
+          <div className="wire">
+            <span className={`pulse${live ? "" : " cold"}`} aria-hidden />
+            {live ? "Reading the channel" : "No connection"}
+          </div>
+          <div className="wire">
+            <b>#ap-review</b>
+          </div>
+        </section>
 
-          return (
-            <article
-              key={r.ts}
-              className={`entry${!r.approvable ? " is-blocked" : ""}${r.decision ? " is-settled" : ""}`}
-            >
-              <div
-                className="line"
-                role="button"
-                tabIndex={0}
-                onClick={() => setOpen(isOpen ? null : r.ts)}
-                onKeyDown={(e) => e.key === "Enter" && setOpen(isOpen ? null : r.ts)}
+        <section>
+          <h2>Queue</h2>
+          <div className="tally">
+            <div>
+              Awaiting approval <b>{waiting.length}</b>
+            </div>
+            <div className={held.length ? "hot" : ""}>
+              Held <b>{held.length}</b>
+            </div>
+            <div>
+              Settled today <b>{settled.length}</b>
+            </div>
+          </div>
+        </section>
+
+        <footer>
+          No database. Every decision rides along as metadata on Ameen&rsquo;s own Slack
+          message, so the channel is the record, the evidence and the audit trail.
+        </footer>
+      </aside>
+
+      <main className="main">
+        <div className="head">
+          <div>
+            <h1>Approval queue</h1>
+            <p>
+              Invoices arrive in Slack. What your team agreed in that channel arrives with
+              them, quoted and linked.
+            </p>
+          </div>
+        </div>
+
+        <div className="band">
+          <div className="risk">
+            <i>Above what was agreed</i>
+            <b>{money(overAgreed)}</b>
+          </div>
+          <div>
+            <i>In the queue</i>
+            <b>
+              {money(queued)}
+              <small>
+                {pending.length} document{pending.length === 1 ? "" : "s"}
+              </small>
+            </b>
+          </div>
+          <div>
+            <i>Needs a second approver</i>
+            <b>{pending.filter((r) => r.level >= 3 && r.approvable).length}</b>
+          </div>
+          <div>
+            <i>Cannot be approved</i>
+            <b>
+              {money(heldValue)}
+              <small>
+                {held.length} held
+              </small>
+            </b>
+          </div>
+        </div>
+
+        {error && <p className="alert">{error}</p>}
+
+        <div className="queue">
+          {loaded && records.length === 0 && !error && (
+            <div className="void">
+              <b>Nothing waiting on you.</b>
+              Drop an invoice into #ap-review and it will appear here within a few seconds.
+            </div>
+          )}
+
+          {records.map((r) => {
+            const c = r.commitment;
+            const excess = c && r.total > c.amount ? r.total - c.amount : 0;
+            const pct = c && c.amount ? ((r.total - c.amount) / c.amount) * 100 : 0;
+            const basePct = c ? Math.max(6, Math.min(100, (Math.min(r.total, c.amount) / Math.max(r.total, c.amount)) * 100)) : 100;
+            const isOpen = open === r.ts;
+
+            return (
+              <article
+                key={r.ts}
+                className={`entry${!r.approvable && !r.decision ? " held" : ""}${r.decision ? " done" : ""}`}
               >
-                <div className="party">
-                  <b>{r.vendor || "Unknown vendor"}</b>
-                  <small>
-                    {[r.reference, r.po_reference, r.doc_date]
-                      .filter(Boolean)
-                      .map((bit) => (
+                <div
+                  className="line"
+                  role="button"
+                  tabIndex={0}
+                  aria-expanded={isOpen}
+                  onClick={() => setOpen(isOpen ? null : r.ts)}
+                  onKeyDown={(e) => {
+                    if (e.key === "Enter" || e.key === " ") {
+                      e.preventDefault();
+                      setOpen(isOpen ? null : r.ts);
+                    }
+                  }}
+                >
+                  <div className="who">
+                    <b>{r.vendor || "Unknown vendor"}</b>
+                    <small>
+                      {[r.reference, r.po_reference, r.doc_date].filter(Boolean).map((bit) => (
                         <span key={bit}>{bit}</span>
                       ))}
-                  </small>
-                </div>
-
-                <div className="figures">
-                  {cited && (
-                    <span className="fig agreed">
-                      <i>agreed</i>
-                      <b>{money(cited.amount, cited.currency)}</b>
-                    </span>
-                  )}
-                  <span className={`fig ${over ? "billed" : "plain"}`}>
-                    <i>invoiced</i>
-                    <b>{money(r.total, r.currency)}</b>
-                  </span>
-                  {cited && Math.abs(delta) > 0.001 && (
-                    <span className="delta">
-                      {delta > 0 ? "+" : ""}
-                      {(delta * 100).toFixed(0)}%
-                    </span>
-                  )}
-                </div>
-
-                <div className={`routing${!r.approvable ? " blocked" : ""}`}>
-                  <b>{r.level_label}</b>
-                  <small>{r.reason}</small>
-                </div>
-
-                {r.decision ? (
-                  <div className="settled">
-                    {r.decision} by {r.approver}
-                    <br />
-                    {r.decided_at}
+                    </small>
+                    <span className="kind">{TRACK[r.track] ?? "Document"}</span>
                   </div>
-                ) : r.approvable ? (
-                  <div className="act" onClick={(e) => e.stopPropagation()}>
-                    <button
-                      className="settle"
-                      disabled={busy === r.ts}
-                      onClick={() => settle(r.ts, "approved")}
-                    >
-                      Approve
-                    </button>
-                    <button
-                      className="refuse"
-                      disabled={busy === r.ts}
-                      onClick={() => settle(r.ts, "rejected")}
-                    >
-                      Reject
-                    </button>
-                  </div>
-                ) : (
-                  <p className="held">
-                    Held. Verify the bank details by phone before this can be approved.
-                  </p>
-                )}
-              </div>
 
-              {cited && (
-                <div className="quote">
-                  <blockquote>
-                    {cited.text}
-                    <cite>
-                      Said in the channel before this invoice existed.{" "}
-                      {cited.permalink && (
-                        <a href={cited.permalink} target="_blank" rel="noreferrer">
+                  <div className="gauge">
+                    <div className="nums">
+                      {c && (
+                        <span className="n a">
+                          <i>agreed</i>
+                          <b>{money(c.amount, c.currency)}</b>
+                        </span>
+                      )}
+                      <span className={`n b${excess ? "" : " level"}`}>
+                        <i>invoiced</i>
+                        <b>{money(r.total, r.currency)}</b>
+                      </span>
+                      {excess > 0 && <span className="gap">+{pct.toFixed(0)}%</span>}
+                    </div>
+
+                    <div className="track">
+                      {excess > 0 ? (
+                        <>
+                          <span className="base" style={{ width: `${basePct}%` }} />
+                          <span className="excess" style={{ width: `${100 - basePct}%` }} />
+                        </>
+                      ) : (
+                        <span className="even" style={{ width: "100%" }} />
+                      )}
+                    </div>
+
+                    <p className="legend">
+                      {excess > 0
+                        ? `${money(excess, r.currency)} more than this vendor agreed to in the channel`
+                        : c
+                          ? "Matches what was agreed in the channel"
+                          : "No prior commitment found for this vendor"}
+                    </p>
+                  </div>
+
+                  <div className={`route${!r.approvable ? " stop" : ""}`}>
+                    <b>{r.level_label}</b>
+                    <small>{r.reason}</small>
+                  </div>
+
+                  {r.decision ? (
+                    <div className="done-note">
+                      {r.decision} by {r.approver}
+                      <span>{r.decided_at}</span>
+                    </div>
+                  ) : r.approvable ? (
+                    <div className="act" onClick={(e) => e.stopPropagation()}>
+                      <button className="yes" disabled={busy === r.ts} onClick={() => settle(r.ts, "approved")}>
+                        Approve
+                      </button>
+                      <button className="no" disabled={busy === r.ts} onClick={() => settle(r.ts, "rejected")}>
+                        Reject
+                      </button>
+                    </div>
+                  ) : (
+                    <p className="stop-note">Verify the bank details by phone before this can be approved.</p>
+                  )}
+                </div>
+
+                {c && (
+                  <div className="promise">
+                    <q>{c.text}</q>
+                    <footer>
+                      Said in #ap-review before this invoice existed.{" "}
+                      {c.permalink && (
+                        <a href={c.permalink} target="_blank" rel="noreferrer">
                           Open the message
                         </a>
                       )}
-                    </cite>
-                  </blockquote>
-                </div>
-              )}
+                    </footer>
+                  </div>
+                )}
 
-              {isOpen && (
-                <div className="detail">
-                  {r.findings.map((f) => (
-                    <div key={f.code} className={`flag s-${f.severity}`}>
-                      <b>{f.title}</b>
-                      <p>
-                        {f.detail}{" "}
-                        {f.evidence_url && (
-                          <a href={f.evidence_url} target="_blank" rel="noreferrer">
-                            See the evidence
-                          </a>
-                        )}
-                      </p>
-                    </div>
-                  ))}
-                  {r.findings.length === 0 && (
-                    <p className="strap">Every check passed. Nothing to look at.</p>
-                  )}
-                  <div className="facts">
-                    <div>
-                      <i>Terms</i>
-                      {r.payment_terms || "not stated"}
-                    </div>
-                    <div>
-                      <i>Tax number</i>
-                      {r.trn || "missing"}
-                    </div>
-                    <div>
-                      <i>Paying account</i>
-                      {r.iban_masked || "not stated"}
-                    </div>
-                    <div>
-                      <i>Reference</i>
-                      {r.doc_id}
+                {isOpen && (
+                  <div className="drawer">
+                    {r.findings.map((f) => (
+                      <div key={f.code} className={`flag s-${f.severity}`}>
+                        <span className="bar" aria-hidden />
+                        <div>
+                          <b>
+                            {f.title}
+                            <span className="sev">{f.severity}</span>
+                          </b>
+                          <p>
+                            {f.detail}{" "}
+                            {f.evidence_url && (
+                              <a href={f.evidence_url} target="_blank" rel="noreferrer">
+                                See the evidence
+                              </a>
+                            )}
+                          </p>
+                        </div>
+                      </div>
+                    ))}
+                    {r.findings.length === 0 && <p className="legend">Every check passed.</p>}
+                    <div className="facts">
+                      <div>
+                        <i>Terms</i>
+                        {r.payment_terms || "not stated"}
+                      </div>
+                      <div>
+                        <i>Tax number</i>
+                        {r.trn || "missing"}
+                      </div>
+                      <div>
+                        <i>Paying account</i>
+                        {r.iban_masked || "not stated"}
+                      </div>
+                      <div>
+                        <i>Record</i>
+                        {r.doc_id}
+                      </div>
                     </div>
                   </div>
-                </div>
-              )}
-            </article>
-          );
-        })}
-      </div>
-
-      <footer className="colophon">
-        <p>
-          No database. Each decision travels as metadata on Ameen&rsquo;s own Slack
-          message, so the channel holds the record, the evidence and the audit trail.
-          This page reads it back.
-        </p>
-        <p>Approving here updates the Slack card in place.</p>
-      </footer>
-    </main>
+                )}
+              </article>
+            );
+          })}
+        </div>
+      </main>
+    </div>
   );
 }
