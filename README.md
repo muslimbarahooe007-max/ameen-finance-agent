@@ -102,17 +102,19 @@ python selftest.py
 ```
 
 Runs the whole pipeline against fixture documents and fixture channel history,
-with no Slack and no model call, and asserts the five behaviours that matter:
+with no Slack and no model call, and asserts the behaviours that matter:
 
 ```
-PASSED: 5 checks - citation, blocking, routing, duplicate, trail
+PASSED: 7 checks - citation, blocking, routing, duplicate,
+        learn-then-police bank details, trail
 ```
 
 1. an invoice above the agreed price is caught **and cites the message**
 2. a changed bank account is BLOCKED and **offers no approval button**
 3. a clean invoice is not over-escalated
 4. the same invoice twice is detected as a duplicate
-5. the decision trail renders every finding with its evidence
+5. a new vendor's bank details are learned only on approval, then policed
+6. the decision trail renders every finding with its evidence
 
 ---
 
